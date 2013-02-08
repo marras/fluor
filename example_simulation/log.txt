@@ -1,0 +1,20 @@
+* Starting log: Mon Jan 16 14:54:31 2012
+
+* Log class by Marek Waligorski
+* ------------------------------
+
+<*> WARNING: Output correlation to corr.dat
+<*> WARNING: Calculating correlation for test.flu.
+NUM_FRAMES 50000000, dT 100000.000000, TAU_MAX 500000000000.000000, BIN_SIZE 1
+
+* Calculating correlation (Logarithmic).
+* Calculating LOG correlation for BIN_SIZE = 1.
+* Creating correlatorSIMPLE object with step_size = 100000.000000 [ps], num_steps = 50000000, steps_per_bin = 1.
+
+* K= 634867, B= 50000000, AVG_INT = 0.012697
+
+* Finished calculating correlation.
+* DONE.
+
+----------- END OF FILE ---------------
+0 error(s) and 2 warning(s) encountered.

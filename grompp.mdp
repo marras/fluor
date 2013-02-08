@@ -1,0 +1,73 @@
+; Plik konfiguracyjny do programu fluor
+; (c) Marek Waligorski 2006-2011
+
+types			= 1; ile rodzajow czastek (musi byc na poczatku!)
+
+; Numeracje zaczynamy od zera (C++ style)
+NATOMS_0		= 100
+rods_0			= 100
+dark_0			= 0 ;wszystkie swieca
+diff_coeff_0            = 500 ; 1000 um^2/s -> 62.5 us dla wxy = 500nm
+ROD_LENGTH_0		= 0 ; dluzsza paleczka. wirus fd mialby 880
+
+; Czy ograniczac dyfuzje do objetosci bąbla?
+babel 			= 0 ; czy i ile jest babli?
+babel_size		= 0 ; rozmiar (XY radius)
+babel_shape		= 3 ; wsp. ksztaltu (1 - kulisty, 3 - jak ognisko)
+babel_diff_coeff	= 0 ; szybkosc dyfuzji babla
+babel_x			= 2000 ; initial bubble position [X]
+babel_y			= 2000
+babel_z			= 6000
+
+;Intensywnosc wzbudzenia
+epsilon			= 1e-6 ; [zliczen / ps] - nie przekraczac 1/krok czas.!
+; aktualnie w centrum ma 10% szans na wzbudzenie w 1 kroku. - chyba OK
+
+; wydajnosci kwantowe
+Qf 			= 1.00
+Qt			= 0.00
+Qb			= 0.00
+
+tauT			= 5e6 ; [ps]
+
+profile			= gauss ;
+pinhole			= 0 ; nie obcinamy fluorescencji
+
+; RUN CONTROL PARAMETERS
+; Start time and timestep in ps
+dt                       = 100000 ;100ns
+nsteps                   = 500000000 ;500e6 x 100ns =50 s
+
+
+; Parametry ogniska i wielkosc pudla
+SIZE_X			 = 8000.0
+SIZE_Y 			 = 8000.0
+SIZE_Z			 = 24000.0 ;8*8*24 = 1536 um^3
+
+WXY			 = 500
+WZ			 = 1500 ; Veff = pi^(3/2)*wxy^2*wz = 2.08 um^3
+
+OBS_VOL_XY		 = 1000  ;z jakiego obsz. wyrzucamy czasteczki do NV.txt
+OBS_VOL_Z		 = 3000  ;oryginalnie 2x szerokosc ogniska
+
+; Dwuogniskowosc
+
+Focus			 = 1 ; jedno, czy dwa ogniska?
+
+f1x			=  4000
+f1y			=  4000
+f1z			=  12000
+
+f2x			=  0
+f2y			=  0
+f2z			=  0
+
+; przeszkody (aktywne tylko w opcji -k)
+obstacle_size		= 20.0
+dim_obstacles		= 10 ; przeszkod na obj.sym w kazdym wymiarze
+
+; Output frequency and precision for xtc file
+nstxtcout                = 1 ; CO ILE KLATEK WYPISUJEMY TRAJ. FLUOR.
+
+; neighbour list update frequency [once per how many frames?] - dla twardych kul
+nstlist                  = 5

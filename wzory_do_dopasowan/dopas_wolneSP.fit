@@ -1,0 +1,18 @@
+# Grace fit description file
+#
+fit title "A fit"
+fit formula "y = A0/(1+x/A1)/sqrt(1+x/A1/A2/A2)"
+fit with 3 parameters
+fit prec 0.01
+a0 = 2.89586
+a0 constraints on
+a0min = 0
+a0max = 10
+a1 = 0.000953764
+a1 constraints on
+a1min = 0
+a1max = 1
+a2 = 1.63397
+a2 constraints on
+a2min = 0
+a2max = 100
