@@ -5,7 +5,6 @@
 #include "MersenneTwister.h"
 #include <stdio.h>
 #include <vector>
-#include "xtcio.h"
 #include "log.h"
 #include <string>
 
@@ -15,13 +14,15 @@
   #define NPOS -1
 #endif
 
-// #define ENABLE_GPU //turn on CUDA! ### THIS is now done in the MAKEFILE!!! NOTE DO NOT TURN ON MANUALLY!
+// #define ENABLE_GPU //turn on CUDA! ### THIS is now done via the MAKEFILE!!! NOTE DO NOT TURN ON MANUALLY!
 
 // #ifdef ENABLE_GPU
 //  #error Miałem tego nie wlaczac!
 // #endif
 
 extern MTRand rng;
+
+typedef double rvec[3];
 
 //NOTE default units as in GROMACS: picoseconds, nanometers
 
@@ -168,7 +169,7 @@ class Bubble {
 	
 	~Bubble() {}
 	
-	bool IsInside (const real x [3]) {
+	bool IsInside (const double x [3]) {
 	    return ((x[0]-pos[0])*(x[0]-pos[0])+ 
 			(x[1]-pos[1])*(x[1]-pos[1])+ 
 			(x[2]-pos[2])*(x[2]-pos[2])/sqr_shape <= sqr_size);	//Elipsoida
@@ -215,9 +216,9 @@ class Fluorescence {
 	int dark;
 	int step;
 	int nstlist;		// how often should we update neighbour list (every nstlist frames)
-// 	real czas;
-	real prec;
-	//real box[3][3];
+// 	double czas;
+	double prec;
+	//double box[3][3];
 	enumProfiles profil;
 	
 	Molecule * mol;

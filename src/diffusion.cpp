@@ -62,7 +62,7 @@ if (ile_babli == 0) {
 	************************************/
 	for (int t=0; t<steps_per_frame; t++) {	    //steps_per_frame = dT / dt (ile x gestsza rozdzielczosc sym. dyfuzji od sym. fluorescencji)
 		for (int i=0; i<natoms; i++) {
-			real new_x[3];
+			double new_x[3];
 			for (int d=0; d<3; d++) new_x[d] = mol[i].x[d] + mol[i].DIFFUSION_STEP() * rng.randNorm(0.0,1.0);
 
 			if (babel->IsInside(new_x)) for (int d=0; d<3; d++) mol[i].x[d] = new_x[d];
