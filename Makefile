@@ -22,9 +22,9 @@ SRC_DIR = src
 #CUDA_FLAGS = -L ~/NVIDIA_GPU_Computing_SDK/C/lib -l cutil_i386
 CUDA_FLAGS = 
 #-L/usr/local/lib/gromacs -lgmx
-#LIBS = -lgmx -lmd -lm -lnsl -lfftw3
-LIBS = -lgmx -lm
-#LIBS = -lgmx -lm -pg	 # PG - for profiler
+#LIBS = -lmd -lm -lnsl -lfftw3
+LIBS = -lm
+#LIBS = -lm -pg	 # PG - for profiler
 CC = g++
 NVCC = nvcc
 
