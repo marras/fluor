@@ -7,7 +7,7 @@ types			= 1; ile rodzajow czastek (musi byc na poczatku!)
 NATOMS_0		= 50
 rods_0			= 50
 dark_0			= 0 ;wszystkie swieca
-diff_coeff_0            = 500 ; [um^2/s] -> 62.5 us dla wxy = 500nm
+diff_coeff_0            = 1000 ; [um^2/s] -> 62.5 us dla wxy = 500nm
 ROD_LENGTH_0		= 0 ; dluzsza paleczka. wirus fd mialby 880
 
 ; Czy ograniczac dyfuzje do objetosci bąbla?
