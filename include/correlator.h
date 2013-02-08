@@ -1,6 +1,7 @@
 #ifndef _CORRELATOR_H_
 #define _CORRELATOR_H_
 
+#include "common.h"
 #include "MersenneTwister.h"
 #include <stdlib.h>
 #include <math.h>

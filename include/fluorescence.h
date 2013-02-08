@@ -1,6 +1,7 @@
 #ifndef _FCS_FLUORESCENCE_H_
 #define _FCS_FLUORESCENCE_H_
 
+#include "common.h"
 #include <fstream>
 #include "MersenneTwister.h"
 #include <stdio.h>
@@ -14,6 +15,7 @@
   #define NPOS -1
 #endif
 
+
 // #define ENABLE_GPU //turn on CUDA! ### THIS is now done via the MAKEFILE!!! NOTE DO NOT TURN ON MANUALLY!
 
 // #ifdef ENABLE_GPU
@@ -21,8 +23,6 @@
 // #endif
 
 extern MTRand rng;
-
-typedef double rvec[3];
 
 //NOTE default units as in GROMACS: picoseconds, nanometers
 
@@ -273,8 +273,8 @@ class Fluorescence {
 
 	Fluorescence ();		//use this constructor to simulate diffusion from scratch
 //	Fluorescence (char* traj_file); //use this one if diff. trajectory is already calculated NOTE DISABLED
-	virtual ~Fluorescence () { 
-		if (fin != -1) close_xtc (fin); 
+	virtual ~Fluorescence () {
+		//if (fin != -1) close_xtc (fin);
 		
 		#ifdef ENABLE_GPU
 		  DeInitCUDA();
