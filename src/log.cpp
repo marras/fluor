@@ -14,13 +14,13 @@ int C_log::exists = 0; //false
 /*------------- Konstruktor & Destruktor ----------------*/
 C_log::C_log (const char * nazwa)
 {
- this->auto_flush = TRUE;
- this->logFile = NULL; //open=FALSE
- this->error_notify = TRUE;
+ this->auto_flush = true;
+ this->logFile = NULL; //open=false
+ this->error_notify = true;
 
- this->warning_notify = TRUE;
+ this->warning_notify = true;
  #ifdef _WIN32
-  this->warning_notify = FALSE;	//don't pop a box on every warning
+  this->warning_notify = false;	//don't pop a box on every warning
  #endif
 
  this->debug = 0;
@@ -44,9 +44,9 @@ C_log::~C_log ()
 /***************** Open & Close ********************************/
 bool C_log::Open ()
 {
- if (logFile!=NULL) return FALSE; //prevent from double opening
+ if (logFile!=NULL) return false; //prevent from double opening
 
- if ((logFile = fopen (filename,"wt"))==NULL) return FALSE; //open the file
+ if ((logFile = fopen (filename,"wt"))==NULL) return false; //open the file
   
  time_t rawtime; time (&rawtime); //get current time
  struct tm * timeinfo = localtime (&rawtime);
@@ -55,7 +55,7 @@ bool C_log::Open ()
  Add ("Log class by Marek Waligorski");
  Add ("------------------------------\n");
  
- return TRUE; //log successfully opened
+ return true; //log successfully opened
 }
 
 void C_log::Close ()
@@ -74,15 +74,15 @@ void C_log::Close ()
 /****************** Add info/error to log *****************************/
 void C_log::Add (const char *fmt, ...)
 {
- bool isItError = FALSE;
- bool isItWarning = FALSE;
+ bool isItError = false;
+ bool isItWarning = false;
  
  if (exists==-1) return;
  if (logFile==NULL) return;	// do not write to an inexistent file
  if (fmt == NULL) return; 	// If There's No Text, Do Nothing
  
  if (fmt[0]=='!')                         //if it's an error
- {isItError = TRUE; num_errors++;
+ {isItError = true; num_errors++;
   fmt++; fprintf(logFile,"<!> ERROR: ");} //write error notification
 
 #ifndef DEBUGGING_OFF 
@@ -96,7 +96,7 @@ void C_log::Add (const char *fmt, ...)
  {if (!this->debug<=2) return; fmt++;fprintf (logFile,"\t\t");}
 
  else if (fmt[0]=='*')                     		//if it's an warning
-  {fmt++; isItWarning=TRUE; fprintf(logFile,"<*> WARNING: ");
+  {fmt++; isItWarning=true; fprintf(logFile,"<*> WARNING: ");
    num_warnings++;} 	
 
 #endif //DEBUGGING_OFF

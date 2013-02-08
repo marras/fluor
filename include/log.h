@@ -18,15 +18,11 @@
 //a nice shortcut (macro)
 #define LOG Log.Add	
 
-#ifdef __linux__ 	//define the message procedure
- #define Notice printf 
- #ifndef TRUE
- 	#define TRUE true
- 	#define FALSE false
- #endif
-#elif _WIN32
+#ifdef _WIN32_ 	//define the message procedure
  #include "E_aux_func.hpp"
- #define Notice MBprint 
+ #define Notice MBprint
+#else
+ #define Notice printf
 #endif
 
 #define NO_DEBUG 	0
