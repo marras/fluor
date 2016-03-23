@@ -9,11 +9,6 @@ FluorObstacles :: FluorObstacles () {
 	current_frame = -1; fin = -1; natoms = -1;
 	dark =-1;
 
-	#ifdef HARD_SPHERES
-	//SANITY CHECK
-	for (int d=0;d<3;d++) if (NUM_SECTORS[d] != int (2*CENTER[d]/SECTOR_SIZE)) {LOG ("!Sanity check failed! Make sure number of sectors (dim %d) is coherent with the size of simulation box.",d); sleep(2);}
-	#endif //HARD_SPHERES
-
 	ReadGROMACSParameters ("config.dat");
 	if (natoms <= 0) LOG ("!Incorrect number of molecules (natoms). Check your config.dat file.");
 
@@ -21,24 +16,10 @@ FluorObstacles :: FluorObstacles () {
 	mol = new Molecule [natoms];
 	
 	for (int i=0; i<natoms; i++) {
-		#ifdef HARD_SPHERES
 		for (int d=0; d<3; d++) {
-			mol[i].x[d] = MOL_SIZE/2 + rng.rand (SIZE[d] - MOL_SIZE); //niech nie wystaja za sciany
-			mol[i].init_x[d] = mol[i].x[d];				//NOTE to nie jest super legalne!
-		}
-
-		for (int j=0;j<i;j++) {
-			//w razie pokrywania sie wygenerujemy wspolrzedne jeszcze raz, zeby sie nie nakladaly ;)
-			if (SqrDistance (mol[i].x, mol[j].x) < MOL_SIZE*MOL_SIZE) {i--; printf ("Retry placing molecule %d.\n",i);}
-		}
-		
-		#else
-		
-		for (int d=0; d<3; d++) {
-			mol[i].x[d] = rng.rand (SIZE[d]); //chrzanic MOL_SIZE
+			mol[i].x[d] = rng.rand (SIZE[d]);
 			mol[i].init_x[d] = mol[i].x[d];
 		}
-		#endif //HARD_SPHERES
 			
 //NOTE zmiana - elipsoida!!!
 /* 	if ((mol[i].init_x[0]-CENTER[0])*(mol[i].init_x[0]-CENTER[0])/CENTER[0]/CENTER[0] + 
@@ -77,24 +58,10 @@ LOG("!Diffusion between obstacles is disabled in this version. Check src/diffusi
   
 
 			
-// 			#ifdef HARD_SPHERES
-// 			mol[i].switched[d] = 0;	   //poki co nie wyszlismy za box w zadna strone
-// 			mol[i].coll_test_x[d]= mol[i].x[d];
-// 			#endif //HARD_SPHERES
-
 			mol[i].CheckSimulationBoxLimits(d); //Periodic boundary conditions
  		 }
-		#ifdef HARD_SPHERES
-		  UpdateMoleculeMovement(i);
-		#endif //HARD_SPHERES
 		}
 	
-  	#ifdef HARD_SPHERES
-		for (int i=0; i<natoms; i++) {
-			int m = CheckCollision (i);
-			if (m != _NO_COL) UndoCollision (i,m); //if there was any collision, undo it
-		}
-	#endif //HARD_SPHERES
 	}
 
 // 	for (int m=0; m<natoms; m++) { //save positions of molecules TODO change to binary for later use
@@ -146,9 +113,6 @@ void FluorObstacles :: ReadGROMACSParameters (char * param_file) {
 	LOG( "*period = %lf, rel_size=%lf",period, relative_size);
 	
 	LOG ("*FluorObstacles: dT = %lf, total_frames = %d, steps_per_frame = %d, TOTAL TIME = %lf, obstacles: size %f, num %d",dT,total_frames, steps_per_frame, total_frames*dT, obst_size, dim_obstacles);
-	#ifdef HARD_SPHERES
-	LOG ("*Volume fraction (phi) = %0.3lf\%, nstlist = %d", natoms*4.0/3.0*3.14*MOL_SIZE*MOL_SIZE*MOL_SIZE/8.0/(8*X0*Y0*Z0)*100.0, nstlist);
-	#endif //HARD_SPHERES	
 
 	fpar.close();
 }

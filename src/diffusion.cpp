@@ -2,10 +2,9 @@
 #include "fluorescence.h"
 #include <iostream>
 #include <fstream>
-
 #include <typeinfo>
 
-// double CENTER [3] = {-1.0, -1.0, -1.0};		//the middle of the simulation box  // V = 4*4*10 = 160 um^3  
+// double CENTER [3] = {-1.0, -1.0, -1.0};	//the middle of the simulation box  // V = 4*4*10 = 160 um^3  
 double SIZE[3] = {-1.0, -1.0, -1.0};		//the size of the simulation box  // V = 4*4*10 = 160 um^3  
 double WXY = -1.0, WZ = -1.0;			//size of the excitation volume (Radius!)
 double SQR_KAPPA = -1.0; //(WZ/WXY)*(WZ/WXY);	//SQR_KAPPA = KAPPA^2 = (wxy / wz)^2 - shape factor of the excitation volume (kappa = 3).
@@ -24,7 +23,6 @@ MoveMolecules_GPU (); return;
 #endif
 
 #define _NO_COL -1
-//#define _RE_CHECK -2
 
 if (ile_babli == 0) {
 	//Normalne zachowane (box szescienny)
@@ -34,27 +32,12 @@ if (ile_babli == 0) {
 		  //if (DIFFUSION_STEP == 0) LOG ("!DIFFUSION_STEP==0 dla czastki %d!",i); //DEBUG
 		  
 		  for (int d=0; d<3; d++) {
-			#ifdef HARD_SPHERES
-			mol[i].switched[d] = 0;	   //poki co nie wyszlismy za box w zadna strone
-			mol[i].coll_test_x[d]= mol[i].x[d];
-			#endif //HARD_SPHERES
-
 // 			mol[i].x[d] += DIFFUSION_STEP * (2.0*rng.rand() - 1.0); //uniform od -1 do +1 TEST HACK
 			mol[i].x[d] += DIFFUSION_STEP * rng.randNorm(0.0,1.0); //rozklad normalny - taki jaki powinien byc...
 			mol[i].CheckSimulationBoxLimits(d); //Periodic boundary conditions
  		 }
+		}
 
-		#ifdef HARD_SPHERES
-		  UpdateMoleculeMovement(i);
-		#endif //HARD_SPHERES
-		}
-	
-  	#ifdef HARD_SPHERES
-		for (int i=0; i<natoms; i++) {
-			int m = CheckCollision (i);
-			if (m != _NO_COL) UndoCollision (i,m); //if there was any collision, undo it
-		}
-	#endif //HARD_SPHERES
 	}
 } else if (ile_babli == 1) {
 	/************************************
@@ -242,10 +225,6 @@ void Fluorescence :: ReadGROMACSParameters (char * param_file) {
 
 	ReadBasicGROMACSParameters (param_file);
 	LOG ("*Fluorescence: dT = %lf, total_frames = %d, steps_per_frame = %d, TOTAL TIME = %lf, NATOMS = %d",dT,total_frames, steps_per_frame, total_frames*dT, natoms);
-
-	#ifdef HARD_SPHERES
-	LOG ("*Volume fraction (phi) = %0.3lf\%, nstlist = %d", natoms*4.0/3.0*3.14*MOL_SIZE*MOL_SIZE*MOL_SIZE/8.0/(8*X0*Y0*Z0)*100.0, nstlist);
-	#endif //HARD_SPHERES
 }
 
 /*******************
@@ -266,191 +245,4 @@ inline double SqrDistance (rvec i, rvec j) {		//square distance - zeby nie oblic
     return _x*_x + _y*_y + _z*_z;
 }
 
-
-/***********************************************************
- * HARD SPHERE COLLISION ALGORITHMS (TODO not 100% secure) *
- ***********************************************************/
-#ifdef HARD_SPHERES
-void Fluorescence :: UndoCollision (int i, int m) {
-	if (i<0 || m<0) LOG ("!Trying to undo an inexistent collision: %d & %d",i,m);
-
-	for (int d=0;d<3;d++) {
-//		mol[i].x[d] = mol[i].coll_test_x[d] + DIFFUSION_STEP * rng.randNorm(0.0,1.0);	//wykonujemy zamiast tego inny ruch obiema czasteczkami NOTE te o malych numerach sa faworyzowane do kolizji!
-//		mol[m].x[d]=  mol[m].coll_test_x[d] + DIFFUSION_STEP * rng.randNorm(0.0,1.0);
-		mol[i].x[d] = mol[i].coll_test_x[d];	//tylko cofamy czasteczki! Metropolis.
-		mol[m].x[d] = mol[m].coll_test_x[d];
-
-		//poprawka dla init_x przy kolizji po przejsciu przez sciane
-		mol[i].init_x[d] += mol[i].switched[d] * 2*CENTER[d]; //switched = -1, 0, lub 1 w zal. w ktora strone
-		mol[m].init_x[d] += mol[m].switched[d] * 2*CENTER[d]; //switched = -1, 0, lub 1 w zal. w ktora strone
-
-		mol[i].switched[d] = 0; mol[m].switched[d] = 0;
-	}
-	UpdateMoleculeMovement (i); UpdateMoleculeMovement (m); //update sector data
-
-	int n = CheckCollision (i);
-	if (n != _NO_COL) UndoCollision (i,n); //HACK dalej juz rekurencyjnie, jezeli cos zajelo ich miejsce
-	n = CheckCollision (m);
-	if (n != _NO_COL) UndoCollision (m,n);
-
-// static const double DIFFUSION_STEP = sqrt (2*1.381e-17*temperature*dT/steps_per_frame/(friction*1e-12)); //dt = dT / steps_per_frame NOTE static prevents multiple calculations
-
-// 			for (int d=0;d<3;d++) {
-// 				
-// 				//Periodic boundary conditions
-// 				mol[i].CheckSimulationBoxLimits(d);
-// 				mol[m].CheckSimulationBoxLimits(d);
-// 			}
-}
-
-inline int Fluorescence :: CheckCollision (const int & i) {
-    int col = _NO_COL; //which molecule does #i collide with?
-
-    int D [3]; //zmienna do iterowania po sektorach w 3 wymiarach (3D ;) )
-
-    for (D[0]=-1; D[0]<=1; D[0]++) 
-      for (D[1]=-1; D[1]<=1; D[1]++) 	//dla wszystkich 3 wym. bierzemy sekt. sasiadujace: poprzedni,obecny,nastepny
-	 for (D[2]=-1; D[2] <=1; D[2]++) {
-	    if (col != _NO_COL) break;
-
-	    int _x[3];
-
-	    for (int d=0; d<3; d++) { 	//enable through-the-wall interactions NEW
-		//wylicz, z jakim sektorem sie stykamy przez sciane:
-		//trzeba dodac NUM_SECTORS[0], bo tutaj modulo (%) dziala dla ujemnych inaczej niz
-		//np. w Pythonie: (-1) % 5 = -1, a nie 4 !
-		_x[d] = (mol[i].sec[d]+D[d]+NUM_SECTORS[d]) % NUM_SECTORS[d];
-
-		//do sprawdzania kolizji przez sciane przesun czasteczki na druga strone pudla
-		if (mol[i].sec[d] == 0 && D[d] == -1) mol[i].x[d] += 2*CENTER[d];
-		if (mol[i].sec[d] == NUM_SECTORS[d]-1 && D[d] == 1) mol[i].x[d] -= 2*CENTER[d];
-	    }
-
-	    for (int j=0; j<num_sec[_x[0]][_x[1]][_x[2]]; j++) { //dla wszystkich czast. z sektora x1y1z1
-		    int m = sector[_x[0]][_x[1]][_x[2]][j];
-		    //do not compare a molecule with itself (or ones that have already been checked??)
-		    if (i == m) continue;
-//  			LOG(" #%d : Checking molecules %d & %d.\n ",current_frame,i,*j);
-		    if (SqrDistance (mol[i].x,mol[m].x) < MOL_SIZE*MOL_SIZE) { //jezeli jest kolizja
-// 			LOG (" #%d : Collision: %d & %d.\n ",current_frame,i,m);
-			col = m;
-			break;
-		    }
-	    }
-
-	    for (int d=0; d<3; d++) { //reverse the changes KONIECZNIE!
-		if (mol[i].sec[d] == 0 && D[d] == -1) mol[i].x[d] -= 2*CENTER[d];
-		if (mol[i].sec[d] == NUM_SECTORS[d]-1 && D[d] == 1) mol[i].x[d] += 2*CENTER[d];
-	    }
-/*	    if (mol[i].sec[0] == 0 && d0 == -1) mol[i].x[0] -= 2*CENTER[0];  zamiast tego :P
-	    if (mol[i].sec[1] == 0 && d1 == -1) mol[i].x[1] -= 2*CENTER[1];
-	    if (mol[i].sec[2] == 0 && d2 == -1) mol[i].x[2] -= 2*CENTER[2];
-	    if (mol[i].sec[0] == NUM_SECTORS[0]-1 && d0 == 1) mol[i].x[0] += 2*CENTER[0];
-	    if (mol[i].sec[1] == NUM_SECTORS[1]-1 && d1 == 1) mol[i].x[1] += 2*CENTER[1];
-	    if (mol[i].sec[2] == NUM_SECTORS[2]-1 && d2 == 1) mol[i].x[2] += 2*CENTER[2];*/
-    }
-    return col;	//nie bylo kolizji
-}
-
-void Fluorescence :: UpdateMoleculeMovement (const int & i) {
-	const int s[3] = {mol[i].sec[0], mol[i].sec[1], mol[i].sec[2]};
-	mol[i].UpdateSec();	//czasteczka sprawdza, w ktorym sektorze jest
-	for (int d=0;d<3;d++) { //jesli chociaz w 1 wymiarze zmienil sie sektor
-		if (mol[i].sec[d] != s[d]) {  //to trzeba uaktualnic pozycje czasteczki w liscie sektorow
-			remove_from_sector(s[0],s[1],s[2],i);			//wersja dla array'a
-			push_to_sector(mol[i].sec[0], mol[i].sec[1], mol[i].sec[2], i);
-			break;
-		}
-	}
-}
-#endif //HARD_SPHERES
-
-
-#ifdef HARD_SPHERES
-/*
-void Fluorescence :: UpdateNeighbourList () {
-//	LOG ("*Updating neighbour list...");
-
-//	int nei = 0;
-     for (int i=0; i<natoms; i++) {
-	int brzeg [3]; 
-//	brzeg[0]=brzeg[1]=brzeg[2] = 0;	//0 - nie przy brzegu, 1 - z lewej, -1 - z prawej
-
-	neighbours[i].clear();
-
-	//compare the closest ones
-	for (int j=0; j<i; j++) {
-		if (SqrDistance (x[i],x[j]) < NSTLIST_CUTOFF*NSTLIST_CUTOFF) { //compare sqr distances - faster
-			neighbours[i].push_back(j);
-			neighbours[j].push_back(i);
-		}
-	}
-	
-	//Take care of molecules near simulation box boundaries
-	for (int d=0;d<3;d++) {
-		if (mol[i].x[d]<NSTLIST_CUTOFF)	//jestesmy blisko lewego brzegu
-			brzeg[d] = 1;
-		else if (2*CENTER[d] - mol[i].x[d] < NSTLIST_CUTOFF)
-			brzeg[d] = -1;
-		else brzeg[d] = 0;
-	}	
-			
-	int ile_przy_brzegu
-	
-	
-// 	for (int j=0; j<i; j++) {
-// 		if (brzeg[0]) {
-// 			x[i]d
-// 			if (brzeg[1]) {
-// 				if (brzeg[2]) {
-// 			
-// 			SqrDistance (x[i],x[j]) < NSTLIST_CUTOFF*NSTLIST_CUTOFF) { //compare sqr distances - faster
-//			neighbours[i].push_back(j);
-// 			neighbours[j].push_back(i);
-//		}
-//	}
-	
-	
-	
-	//////////////
-			for (int j=0; j<i; j++) {
-				if (2*CENTER[d] - mol[j].x[d] + mol[i].x[d] < NSTLIST_CUTOFF) { //NOTE niepotrzebnie tak duzo (2x cutoff range)
-					neighbours[i].push_back(j);
-					neighbours[j].push_back(i);
-				}
-			}
-		}
-		else if (2*CENTER[d]-mol[i].x[d] < NSTLIST_CUTOFF) { //jestesmy blisko prawego brzegu
-// 			LOG ("*%d is much to the right (dim %d)!",i,d);
-			for (int j=0; j<i; j++) {
-				if (mol[j].x[d] < NSTLIST_CUTOFF) {
-					neighbours[i].push_back(j);
-					neighbours[j].push_back(i);
-				}
-			}
-		}
-	}
-
-//	nei += neighbours[i].size();
-     }
-//	LOG ("*AVG nei = %5.2f",((float)nei) / natoms);
-}
-*/
-
-// for -1,0,1: check sector i % NUM_SECTORS!
-
-
-// bool Fluorescence :: CheckAndAvoidCollisions() {
-//     //HARD SPHERES
-// /*    ktora_proba++;
-//     if (ktora_proba >2) LOG ("*[#%d] Proba: %d",current_frame, ktora_proba);*/
-//     bool bylo_zderzenie = false;
-// 
-//     for (int i=0; i<natoms; i++) { 
-// 	if (CheckCollision (i)) bylo_zderzenie = true;
-//     }
-//     
-//     return bylo_zderzenie;
-// }
-#endif //HARD_SPHERES
 

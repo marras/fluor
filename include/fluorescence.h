@@ -44,24 +44,6 @@ extern double OBS_VOL_Z;	//3000.0
 
 //#define CALC_MSD	//for diffusion coefficient calculations
 #define PROGRESS_IND_FREQ 5000
-// #define HARD_SPHERES
-const double MOL_SIZE = 0; //10; // 2*233; 	//size (diameter) of a dye molecule NOTE only matters for HARD_SPHERES collision checking!
-
-// For Neighboursearching algorithm
-//const double NST_MAGIC_FACTOR = 3.5;
-//NOTE this should actually depend also on the avg brownian movement distance and nstlist
-//const double NSTLIST_CUTOFF = NST_MAGIC_FACTOR * MOL_SIZE; //3.0 - magic constant (2.0 + rozmiar samych czasteczek)
-
-#ifdef HARD_SPHERES
-// For Sector algorithm
-const double SECTOR_SIZE = 500.0; //rozmiar sektora do sprawdzania kolizji
-const int MAX_LIST_LEN = 9; //int (SECTOR_SIZE*SECTOR_SIZE*SECTOR_SIZE / 3.141*6.0/(MOL_SIZE*MOL_SIZE*MOL_SIZE) ) + 1; //2.0, b0 4/3piR^3, ale MOL_SIZE = 2R
-//const int NUM_SECTORS [3] = {int (X0*2/SECTOR_SIZE), int (Y0*2/SECTOR_SIZE), int (Z0*2/SECTOR_SIZE)};
-const int NUM_SEC_X = 4;
-const int NUM_SEC_Y = 4;
-const int NUM_SEC_Z = 12;
-const int NUM_SECTORS [3] = {NUM_SEC_X , NUM_SEC_Y , NUM_SEC_Z };
-#endif //HARD_SPHERES
 
 enum enumProfiles {
 	PR_GAUSS = 0,
@@ -102,45 +84,20 @@ class Molecule {	//teraz bedzie dluzej: "mol[m].x[d]" zamiast  "x[m][d]", ale pr
 
 	Molecule () {_diffusion_step = 0;} //W razie czego zauwazymy, ze nie jest zainicjalizowane, bo nie beda sie ruszac :)
 
-
-      #ifdef HARD_SPHERES
-	rvec coll_test_x;	//for storing the molecule positions to revert to after a collision
-	int sec [3];		//w ktorym sektorze jestesmy
-	inline void UpdateSec() {	//funkcja sprawdza, w ktorym sektorze jestesmy i uaktualnia zmienna sec
-		for (int d=0;d<3;d++) {
-			sec[d] = int (x[d]/SECTOR_SIZE);
-			//NOTE Uratuj sie przed niepewnosciami dodawania double'i np. -1e-12 + 2000.0 = 2000.0 czyli sektor 20 zamiast 19!
-			if (sec[d]==NUM_SECTORS[d]) {/*LOG ("*INVALID SECTOR: %lf %lf %lf!",x[0],x[1],x[2]); */sec[d]=NUM_SECTORS[d]-1;}  
-		}
-	}
-
-	int switched[3];
-      #endif //HARD_SPHERES
-
 	inline int CheckSimulationBoxLimits (int d) { //d- ktory wmiar
 		if (x[d] > SIZE[d]) {
 			x[d] -= SIZE[d];
 		#ifdef CALC_MSD
 			init_x[d] -= SIZE[d];
 		#endif
-	  #ifdef HARD_SPHERES
-		switched[d] = 1;	//wyszedl w prawo
-	  #endif //HARD_SPHERES		
 		}
 		else if (x[d] < 0) {
 			x[d] += SIZE[d];
 		#ifdef CALC_MSD
 			init_x[d] += SIZE[d];
 		#endif
-	  #ifdef HARD_SPHERES
-		switched[d] = -1;	//wyszedl w lewo
-	  #endif //HARD_SPHERES		
 		}
-	  #ifdef HARD_SPHERES
-		return switched[d];
-	  #else 
 		return 0;
-	  #endif //HARD_SPHERES
 	}
 	
 	double MSD () {
@@ -150,7 +107,6 @@ class Molecule {	//teraz bedzie dluzej: "mol[m].x[d]" zamiast  "x[m][d]", ale pr
 	   	return (x[0]-init_x[0])*(x[0]-init_x[0]) + (x[1]-init_x[1])*(x[1]-init_x[1]) 
 			+ (x[2]-init_x[2])*(x[2]-init_x[2]);
 	}
-  // #endif //HARD_SPHERES
 };
 
 class Bubble {
@@ -225,13 +181,6 @@ class Fluorescence {
 	
 //	list<int> * neighbours;	//array of neighbour lists for every molecule (for faster collision checks)
 //	list<int> *** sector; //nie moge automatycznie przez NUM_SECTORS, bo to array - dla C++ 'dynamiczny' :/
-#ifdef HARD_SPHERES
-	int sector [NUM_SEC_X][NUM_SEC_Y][NUM_SEC_Z] [MAX_LIST_LEN];
-	int num_sec [NUM_SEC_X][NUM_SEC_Y][NUM_SEC_Z];		//how many molecules are in each sector
-	void remove_from_sector (int x, int y, int z, int m);
-	void push_to_sector (int x, int y, int z, int m);
-	void UpdateMoleculeMovement (const int & i);
-#endif //HARD_SPHERES
 
 	int total_frames;
 	int steps_per_frame; 	//interesting only when simulating diffusion on our own

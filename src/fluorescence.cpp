@@ -9,32 +9,6 @@ double tauT = -1.0;			//exponential time constant for Triplet->Ground conversion
 double TRIPLET_TRESHOLD = -1;
 double BLEACH_TRESHOLD = -1;
 
-#ifdef HARD_SPHERES
-/***********************************************
- * Auxilliary functions for collision checking *
- ***********************************************/
-inline double SqrDistance (rvec i, rvec j) {		//square distance - zeby nie obliczac sqrt()
-    return (i[0]-j[0])*(i[0]-j[0]) + (i[1]-j[1])*(i[1]-j[1]) + (i[2]-j[2])*(i[2]-j[2]) ;
-}
-
-void Fluorescence :: push_to_sector(int x, int y, int z, int m) {
-    if (num_sec[x][y][z] >= MAX_LIST_LEN) LOG ("!Too many molecules in sector %d %d %d",x,y,z); ////DEBUG
-	
-    sector[x][y][z][num_sec[x][y][z]] = m;
-    num_sec[x][y][z] ++;
-}
-
-void Fluorescence :: remove_from_sector (int x, int y, int z, int m) {
-    for (int i=0; i<num_sec[x][y][z]; i++)
-	if (sector[x][y][z][i] == m) {
-	    sector[x][y][z][i] = sector[x][y][z][num_sec[x][y][z]-1]; //na jej miejsce przesuwamy przedostatnia
-	    num_sec[x][y][z] --; 	//i mamy teraz jedna czasteczke mniej
-	    return;
-	}
-    LOG ("*Trying to remove an inexistent molecule %d from sector %d %d %d.",m,x,y,z);
-}
-#endif //HARD_SPHERES
-
 /********************************************
  * Opens molecule diffusion trajectory file *
  ********************************************/
@@ -42,32 +16,6 @@ void Fluorescence :: Init () {
    //LOG ("*INIT called");
 	for (int i=0;i<natoms;i++)
 	   for (int d=0; d<3; d++) mol[i].old_x[d] = mol[i].x[d];
-
-  #ifdef HARD_SPHERES
-//	neighbours = new list<int> [natoms];
-//	UpdateNeighbourList();	//nie trzeba recznie, na poczatku current_frame = 0 wiec i tak pojdzie :)
-
-	int total_num_sectors = NUM_SECTORS [0] * NUM_SECTORS [1] * NUM_SECTORS [2];
-	LOG ("Sectors: %d x %d x %d  = %d", NUM_SECTORS [0], NUM_SECTORS [1], NUM_SECTORS [2], total_num_sectors);
-
-	for (int i=0; i<NUM_SECTORS[0]; i++)
-		for (int j=0; j<NUM_SECTORS[1]; j++)
-		    for (int k=0; k<NUM_SECTORS[2]; k++)
-			num_sec[i][j][k] = 0;		//na razie nie ma czasteczek w tych sektorach
-
-		/*	sector = new list<int> ** [NUM_SECTORS[0]];
-	for (int i=0; i<NUM_SECTORS[0]; i++){
-		sector[i] = new list<int> * [NUM_SECTORS[1]];
-		for (int j=0; j<NUM_SECTORS[1]; j++)
-			sector[i][j] = new list<int> [NUM_SECTORS[2]];
-	}*/
-	
-	for (int m=0; m<natoms; m++) { //zapisujemy, w ktorym sektorze jest dana czastka i jakie czastki sa w kazdym sektorze.
-		mol[m].UpdateSec();
-		push_to_sector (mol[m].sec[0], mol[m].sec[1], mol[m].sec[2], m);
-	}
-	
-  #endif //HARD_SPHERES
 
 /*	for (int i=0;i<natoms;i++)  //NOTE this is already set in ReadBasicGROMASParameters()!
 		ile_wyswiecilam[i] =0; 
@@ -93,29 +41,11 @@ Fluorescence :: Fluorescence () {
 	ile_babli = 0;
 //	diff_coeff = -1.0;
 
-	#ifdef HARD_SPHERES
-	//SANITY CHECK
-	for (int d=0;d<3;d++) if (NUM_SECTORS[d] != int (2*CENTER[d]/SECTOR_SIZE)) {LOG ("!Sanity check failed! Make sure number of sectors (dim %d) is coherent with the size of simulation box.",d); sleep(2);}
-	#endif //HARD_SPHERES
-
 	ReadGROMACSParameters ("config.dat");
 
 	for (int i=0; i<natoms; i++) {
-		#ifdef HARD_SPHERES
 		for (int d=0; d<3; d++) {
-			mol[i].x[d] = MOL_SIZE/2 + rng.rand (2*CENTER[d] - MOL_SIZE); //niech nie wystaja za sciany
-			mol[i].init_x[d] = mol[i].x[d];				//NOTE to nie jest super legalne!
-		}
-
-		for (int j=0;j<i;j++) {
-			//w razie pokrywania sie wygenerujemy wspolrzedne jeszcze raz, zeby sie nie nakladaly ;)
-			if (SqrDistance (mol[i].x, mol[j].x) < MOL_SIZE*MOL_SIZE) {i--; printf ("Retry placing molecule %d.\n",i);}
-		}
-		
-		#else
-		
-		for (int d=0; d<3; d++) {
-			mol[i].x[d] = rng.rand (SIZE[d]); //chrzanic MOL_SIZE
+			mol[i].x[d] = rng.rand (SIZE[d]);
 			mol[i].init_x[d] = mol[i].x[d];
 		}
 
@@ -123,7 +53,6 @@ Fluorescence :: Fluorescence () {
 		if (ile_babli > 0) { //TODO change to allow many bubbles
 			if (!babel->IsInside(mol[i].x)) {printf ("Retry placing molecule %d.\n",i);i--;}
 		}
-		#endif //HARD_SPHERES
 	}
 
 	Init (); //generuj startowe pozycje czastek itp.

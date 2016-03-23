@@ -138,9 +138,6 @@ void FluorRods :: ReadGROMACSParameters (char * param_file) {
 		
 	
 	LOG ("*FluorRods: dT = %lf, total_frames = %d, steps_per_frame = %d, TOTAL TIME = %lf, rod types = %d, total atoms in rods = %d",dT,total_frames, steps_per_frame, total_frames*dT, types, natoms);
-//	#ifdef HARD_SPHERES
-//	 LOG ("*Volume fraction (phi) = %0.3lf\%, nstlist = %d", natoms*4.0/3.0*3.14*MOL_SIZE*MOL_SIZE*MOL_SIZE/8.0/(8*X0*Y0*Z0)*100.0, nstlist);
-//	#endif //HARD_SPHERES
 }
 
 FluorRods :: ~FluorRods () {
