@@ -1,5 +1,6 @@
 *~
 *.dat
+!config.dat
 *.txt
 *.flu
 fluor
