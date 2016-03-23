@@ -98,7 +98,7 @@ Fluorescence :: Fluorescence () {
 	for (int d=0;d<3;d++) if (NUM_SECTORS[d] != int (2*CENTER[d]/SECTOR_SIZE)) {LOG ("!Sanity check failed! Make sure number of sectors (dim %d) is coherent with the size of simulation box.",d); sleep(2);}
 	#endif //HARD_SPHERES
 
-	ReadGROMACSParameters ("grompp.mdp");
+	ReadGROMACSParameters ("config.dat");
 
 	for (int i=0; i<natoms; i++) {
 		#ifdef HARD_SPHERES
@@ -380,7 +380,7 @@ void Fluorescence:: UpdateMoleculePositions () {
 // 	fin = open_xtc(traj_file,"r");
 // 	read_first_(fin, &natoms, &step, &czas, box, &x,&prec, &bOK);
 // 
-// 	ReadGROMACSParameters ("grompp.mdp");
+// 	ReadGROMACSParameters ("config.dat");
 // 
 // 	Init ();
 // }

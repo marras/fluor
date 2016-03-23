@@ -10,11 +10,11 @@ FluorRods :: FluorRods () {
 	simulate_diffusion = true;
 	current_frame = -1; fin = -1; natoms = 0; ROD_LENGTH = NULL;
 
-	ReadGROMACSParameters ("grompp.mdp");
+	ReadGROMACSParameters ("config.dat");
 
-	if (natoms <= 0) LOG ("!Incorrect number of molecules (natoms). Check your grompp.mdp file.");
-	if (num_rods == NULL) LOG ("!Insufficient data in grompp.mdp: rods number not set.");
-//	if (ROD_LENGTH < 0) LOG ("!Insufficient/incorrect data in grompp.mdp: ROD LENGTH not set.");
+	if (natoms <= 0) LOG ("!Incorrect number of molecules (natoms). Check your config.dat file.");
+	if (num_rods == NULL) LOG ("!Insufficient data in config.dat: rods number not set.");
+//	if (ROD_LENGTH < 0) LOG ("!Insufficient/incorrect data in config.dat: ROD LENGTH not set.");
 
 	//Allocate mem for molecules & set random starting positions	
 	int m = 0; // index czasteczki
@@ -131,7 +131,7 @@ void FluorRods :: ReadGROMACSParameters (char * param_file) {
 	fpar.close();
 
 	for (int t=0; t<types; t++) {
-	    if (num_rods[t] <= 0) LOG ("!Incorrect number of rods for component %d. Check your grompp.mdp file or make sure if you really want to simulate rod diffusion.",t);	  
+	    if (num_rods[t] <= 0) LOG ("!Incorrect number of rods for component %d. Check your config.dat file or make sure if you really want to simulate rod diffusion.",t);	  
 	    if (num_atoms_in_type[t] % num_rods[t] != 0) LOG ("!Number of atoms (in group %d) should be an integer multiple of the number of rods!",t);
 	    atoms_per_rod [t] = num_atoms_in_type[t] / num_rods[t];
 	}

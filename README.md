@@ -15,7 +15,7 @@ $ cp fluor simulation_directory/
 $ cd simulation_directory/
 ```
 
-Edit configuration file: grompp.mdp
+Edit configuration file: config.dat
 
 Simulate diffusion and fluorescence
 ```

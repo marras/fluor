@@ -14,8 +14,8 @@ FluorObstacles :: FluorObstacles () {
 	for (int d=0;d<3;d++) if (NUM_SECTORS[d] != int (2*CENTER[d]/SECTOR_SIZE)) {LOG ("!Sanity check failed! Make sure number of sectors (dim %d) is coherent with the size of simulation box.",d); sleep(2);}
 	#endif //HARD_SPHERES
 
-	ReadGROMACSParameters ("grompp.mdp");
-	if (natoms <= 0) LOG ("!Incorrect number of molecules (natoms). Check your grompp.mdp file.");
+	ReadGROMACSParameters ("config.dat");
+	if (natoms <= 0) LOG ("!Incorrect number of molecules (natoms). Check your config.dat file.");
 
 	//Allocate mem for molecules & set random starting positions
 	mol = new Molecule [natoms];
@@ -138,8 +138,8 @@ void FluorObstacles :: ReadGROMACSParameters (char * param_file) {
 		else if (zmienna == "dim_obstacles") {dim_obstacles = atoi (wartosc.c_str()); LOG ("dim_obstacles= %d",dim_obstacles);}  
 	}
 
-	if (dim_obstacles == -1) LOG ("!Insufficient data in grompp.mdp: obstacles number not set.");
-	if (obst_size == 0.0) LOG ("!Insufficient data in grompp.mdp: obstacle size not set.");
+	if (dim_obstacles == -1) LOG ("!Insufficient data in config.dat: obstacles number not set.");
+	if (obst_size == 0.0) LOG ("!Insufficient data in config.dat: obstacle size not set.");
 
 	period = SIZE[0]/dim_obstacles; //odl. miedzy srodkami szecianow; zakladamy, ze sa rownomiernie rozm. w 3D
 	relative_size = obst_size / period;

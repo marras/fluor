@@ -4,7 +4,7 @@ from sys import argv
 # Skrypt wypisujący z pliku positions.txt kolejne polozenia 1 czasteczki
 
 if len(argv) == 2:
-	gr = open ("grompp.mdp")
+	gr = open ("config.dat")
 	for l in gr.readlines():
 		a=l.split()
 		if len (a) < 3:
@@ -13,7 +13,7 @@ if len(argv) == 2:
 			natoms = int (a[2])
 
 if len(argv) != 2 and len(argv) != 3:
-	print "Incorrect number of parameters!\nUsage: %s [which_molecule] -- default grompp.mdp search for natoms" % argv[0]
+	print "Incorrect number of parameters!\nUsage: %s [which_molecule] -- default config.dat search for natoms" % argv[0]
 	print "OR: %s [natoms] [which_molecule]" %argv[0]
 	exit(1)
 

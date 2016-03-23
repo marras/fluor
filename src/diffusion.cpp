@@ -192,9 +192,9 @@ void Fluorescence :: ReadBasicGROMACSParameters (char * param_file) {
 
 	fpar.close();
 
-	if (natoms <= 0) LOG ("!Incorrect number of molecules (natoms). Check your grompp.mdp file.");
-	if (SIZE[0] < 0 || SIZE[1] < 0 || SIZE[2] < 0) LOG ("!Missing data on simulation box size in grompp.mdp.");
-	if (_nsteps == -1 || _dt == -1 || steps_per_frame == -1 || natoms == -1 || diff_coeff < 0) { LOG ("!Insufficient data in grompp.mdp"); exit(71);}
+	if (natoms <= 0) LOG ("!Incorrect number of molecules (natoms). Check your config.dat file.");
+	if (SIZE[0] < 0 || SIZE[1] < 0 || SIZE[2] < 0) LOG ("!Missing data on simulation box size in config.dat.");
+	if (_nsteps == -1 || _dt == -1 || steps_per_frame == -1 || natoms == -1 || diff_coeff < 0) { LOG ("!Insufficient data in config.dat"); exit(71);}
 	if (dark < 0 || dark > natoms) LOG ("!Incorrect number of dark molecules.");
 	if (_nsteps % steps_per_frame != 0) LOG ("!nsteps should be an integer multiple of steps_per_frame!");
 	
