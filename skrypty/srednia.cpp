@@ -1,5 +1,7 @@
 #include<stdio.h> 
 
+// Oblicza średnią z liczb w danym pliku. (np. średnią int. fluorescencji)
+
 int main (int argc, char ** argv) {
 	if (argc != 2) {
 		printf ("Wrong number of arguments!\n");

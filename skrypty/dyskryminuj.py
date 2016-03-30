@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# Plik obcina intensywność fluorescencji na wybranym poziomie (symulacja nasycenia detektora... chyba. nie pamiętam już dokładnie ;) )
+
 import os,sys
 
 if (len(sys.argv) != 2 and len(sys.argv) != 3):

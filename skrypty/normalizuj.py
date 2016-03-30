@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
+# Normalizuje wszystkie pliki o nazwach corr*.dat (chyba?)
+
 import os,re,sys
 
 def znormalizuj (plik_in, plik_out):

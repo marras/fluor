@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from sys import argv
 
-# Skrypt wypisujący z pliku positions.txt kolejne polozenia 1 czasteczki
+# Skrypt wypisujący z pliku positions.txt kolejne polozenia 1 czasteczki - trzeba najpierw włączyć w .cpp generowanie tego pliku
 
 if len(argv) == 2:
 	gr = open ("config.dat")

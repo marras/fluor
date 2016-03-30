@@ -6,6 +6,8 @@ from scipy.optimize import leastsq
 import scipy
 import sys
 
+# To chyba dopasowuje rozkład Poissona do histogramu zliczeń. Nie jestem pewien czy działa.
+
 ## Parametric function: 'v' is the parameter vector, 'x' the independent var - funkcja do fitu
 #fp = lambda v, x: v[0]*v[1]**x*exp(-v[1])/scipy.misc.factorial(x) # rozklad Poissona, v[0]=C v[1]==lambda
 ## Normal distribution: C, avg, dev^2
