@@ -1,9 +1,18 @@
 /* 
- * (c) Marek Waligorski 2004, www.icpnet.pl/~emwal
+ * (c) Marek Waligorski 2004
  * You are free to use, distribute and/or modify this code as long as
  * you do it free of charge and mention the original author's name.
  * This code comes WITHOUT WARRANTY of any kind.
- */
+ *
+ * USAGE:
+ *
+ * C_log Log("log.txt");
+ *
+ * LOG("!This is an error");
+ * LOG("*This is an warning");
+ * LOG("This is an ordinary message");
+ * LOG("@This is a debug message");
+*/
 
 /** Log Class **/
 

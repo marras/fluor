@@ -1,5 +1,5 @@
 /* 
- * (c) Marek Waligorski 2004, www.icpnet.pl/~emwal
+ * (c) Marek Waligorski 2004
  * You are free to use, distribute and/or modify this code as long as
  * you do it free of charge and mention the original author's name.
  * This code comes WITHOUT WARRANTY of any kind. See LICENSE file for details.
@@ -15,7 +15,7 @@ int C_log::exists = 0; //false
 C_log::C_log (const char * nazwa)
 {
  this->auto_flush = true;
- this->logFile = NULL; //open=false
+ this->logFile = NULL; // Start with closed logfile
  this->error_notify = true;
 
  this->warning_notify = true;
@@ -51,8 +51,7 @@ bool C_log::Open ()
  time_t rawtime; time (&rawtime); //get current time
  struct tm * timeinfo = localtime (&rawtime);
  
- Add ("Starting log: %s",asctime (timeinfo)); 
- Add ("Log class by Marek Waligorski");
+ Add ("Starting log: %s",asctime (timeinfo));
  Add ("------------------------------\n");
  
  return true; //log successfully opened
