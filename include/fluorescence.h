@@ -2,6 +2,7 @@
 #define _FCS_FLUORESCENCE_H_
 
 #include "common.h"
+#include "stdlib.h"
 #include <fstream>
 #include "MersenneTwister.h"
 #include <stdio.h>
