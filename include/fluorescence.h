@@ -265,23 +265,4 @@ class FluorRods : public Fluorescence {
 	~FluorRods ();
 };
 
-class FluorObstacles : public Fluorescence {
-  protected:
-// 	void Normalize (double v[3]);
-
-	virtual void ReadGROMACSParameters (char * param_filename);
-	virtual void SimulateDiffusion ();	//simulate the movement of the molecules
-
-	double period;
-	double relative_size;
-	
-  public:
-	int dim_obstacles;
-	double obst_size;
-	
-	FluorObstacles ();
-	~FluorObstacles () {};
-};
-
-
 #endif //_FCS_FLUORESCENCE_H_

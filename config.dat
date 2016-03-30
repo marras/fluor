@@ -62,10 +62,6 @@ f2x			=  0
 f2y			=  0
 f2z			=  0
 
-; przeszkody (aktywne tylko w opcji -k)
-obstacle_size		= 20.0
-dim_obstacles		= 10 ; przeszkod na obj.sym w kazdym wymiarze
-
 ; Output frequency and precision for xtc file
 nstxtcout                = 1 ; CO ILE KLATEK WYPISUJEMY TRAJ. FLUOR.
 
