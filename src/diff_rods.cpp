@@ -24,7 +24,7 @@ FluorRods :: FluorRods () {
 		  double rod_initial_pos [3], orientation [3];
 		  for (int d=0; d<3; d++) {
 			  rod_initial_pos[d] = rng.rand (SIZE[d]); 	//NOTE this is the end of the rod, NOT the center of mass (doesn't matter so far)
-			  orientation[d] = rng.rand (2.0) - 1.0;		 //orient: number in [-1.0,1.0]
+			  orientation[d] = rng.rand (2.0) - 1.0;	//orientation: number in [-1.0,1.0] - moze lepiej byloby generowac w koordynatach polarnych?
 		  }
 
 		  Normalize (orientation);
@@ -41,8 +41,6 @@ FluorRods :: FluorRods () {
 	}
 
 	LOG ("Done setting up %d molecules.",m);
-
-	//Init (); //Ta funkcja już została wywołana z konstruktora klasy bazowej Fluorescence () !! NOTE
 }
 
 /***************************************
@@ -77,8 +75,8 @@ void FluorRods :: SimulateDiffusion () {
 //	 LOG ("mol[0].x[0] = %lf",mol[0].x[0]);
 	}
 
-	//We can add more sophisticated interaction algorithms here.
-	//TODO rotational diffusion! (read up!) - chbya najlepiej przeksztalcic jakimis macierzami obrotu?
+	//We could add more sophisticated interaction algorithms here.
+	//TODO rotational diffusion! (read up!) - chyba najlepiej przeksztalcic jakimis macierzami obrotu?
 }
 
 

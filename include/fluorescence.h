@@ -42,7 +42,7 @@ extern double OBS_VOL_XY;	//1000.0	//observation volume dimensions (1x1x3 um)
 extern double OBS_VOL_Z;	//3000.0
 
 
-//#define CALC_MSD	//for diffusion coefficient calculations
+//#define CALC_MSD	//Turn this on for diffusion coefficient calculations (i.e. to verify if diffusion coefficient has the right value)
 #define PROGRESS_IND_FREQ 5000
 
 enum enumProfiles {
@@ -79,7 +79,6 @@ class Molecule {	//teraz bedzie dluzej: "mol[m].x[d]" zamiast  "x[m][d]", ale pr
 	double DIFFUSION_STEP () {return _diffusion_step;} //getter method
 	void SetDiffusionCoeff (double diff_coeff, double dT, int steps_per_frame) {
 	    this->_diffusion_step = sqrt (2*diff_coeff * dT/steps_per_frame*1e-6); //dt = dT / steps_per_frame
-// 	    LOG("*Hello! I'm setting diff coeff from %lf to DIFF_STEP = %lf",diff_coeff,DIFFUSION_STEP());
 	}
 
 	Molecule () {_diffusion_step = 0;} //W razie czego zauwazymy, ze nie jest zainicjalizowane, bo nie beda sie ruszac :)
@@ -132,8 +131,6 @@ class Bubble {
 	}
 	
 	void Move();
-	
-	
 };
 
 class Fluorescence {
@@ -172,16 +169,12 @@ class Fluorescence {
 	int dark;
 	int step;
 	int nstlist;		// how often should we update neighbour list (every nstlist frames)
-// 	double czas;
 	double prec;
 	//double box[3][3];
 	enumProfiles profil;
 	
 	Molecule * mol;
 	
-//	list<int> * neighbours;	//array of neighbour lists for every molecule (for faster collision checks)
-//	list<int> *** sector; //nie moge automatycznie przez NUM_SECTORS, bo to array - dla C++ 'dynamiczny' :/
-
 	int total_frames;
 	int steps_per_frame; 	//interesting only when simulating diffusion on our own
 	bool simulate_diffusion; //should we simulate the diffusion or read the trajectory from a file?	
@@ -211,11 +204,6 @@ class Fluorescence {
 
 	double MeanSquareDisplacement ();
 
-	//bool CheckAndAvoidCollisions();		//global colision checking procedure
-	int CheckCollision (const int & i);	//check if molecule #i is colliding with anything
-	void UndoCollision (int i, int m);
-	//void UpdateNeighbourList ();
-	
   public:
 	double dT;		//trajectory resolution, read from the .xtc file
 	int current_frame;
@@ -232,13 +220,6 @@ class Fluorescence {
 		if (ile_babli > 0) delete babel;
 		
 		delete [] mol; delete [] state; delete [] ile_wyswiecilam; delete [] num_atoms_in_type;
-/*		if (sector == NULL) return;
-		for (int i=0; i<NUM_SECTORS[0]; i++) {
-			for (int j=0; j<NUM_SECTORS[1]; j++)
-				delete [] sector[i][j];
-			delete [] sector[i];
-		}	
-		delete [] sector;*/
 	}
 
 	//Opens molecule diffusion trajectory file & reads the first frame
@@ -257,7 +238,6 @@ class FluorRods : public Fluorescence {
 	void Normalize (double v[3]);
 
 	virtual void ReadGROMACSParameters (char * param_filename);
-// 	virtual void ReadBasicGROMACSParameters (FILE * fp); //already defined 
 	virtual void SimulateDiffusion ();	//simulate the movement of the molecules
 
   public:

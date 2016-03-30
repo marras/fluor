@@ -13,20 +13,11 @@ double BLEACH_TRESHOLD = -1;
  * Opens molecule diffusion trajectory file *
  ********************************************/
 void Fluorescence :: Init () {
-   //LOG ("*INIT called");
 	for (int i=0;i<natoms;i++)
 	   for (int d=0; d<3; d++) mol[i].old_x[d] = mol[i].x[d];
 
-/*	for (int i=0;i<natoms;i++)  //NOTE this is already set in ReadBasicGROMASParameters()!
-		ile_wyswiecilam[i] =0; 
-		if (i<dark) state[i]=MS_DARK;  //allow for non-fluorescent molecules
-		else state[i]=MS_GROUND;
-	}	//all molecules start in ground state	*/
 	current_frame = 0;
-
 	ile_wybielonych = 0;
-
-// 	LOG ("natoms  = %d, [0] = %f, czas = %f\n",natoms,mol[0].x[0],czas);
 }
 
 
@@ -39,7 +30,6 @@ Fluorescence :: Fluorescence () {
 	bOK = true; dark =-1; num_foci=-1;
 	F1[0]=-1;F1[1]=-1;F1[2]=-1;
 	ile_babli = 0;
-//	diff_coeff = -1.0;
 
 	ReadGROMACSParameters ("config.dat");
 
@@ -77,6 +67,7 @@ void FluorRods :: Normalize (double v[3]) {
 inline double abs (double x) {
  return x>=0 ? x : -x;
 }
+
 /***********************************************************************************
  * Calculates the fluorescence trajectory, storing the results in the output file. *
  ***********************************************************************************/
@@ -92,6 +83,7 @@ void Fluorescence :: CalculateFluorescenceTrajectory (const char * file_out) {
   fp2 = fopen ("Nv.txt","wt");	//"Number of molecules in observation volume" trajectory file
   fp3 = fopen ("PHB.txt","wt");
 
+  // DEBUG (sort of)
   fp4 = fopen ("photons_to_bleach.txt","wt");////
   fpos = fopen64 ("positions.txt","wt"); //do obliczenia profilu fluorescencji :)
   
@@ -148,7 +140,6 @@ void Fluorescence:: ApplyStateChanges () {
 		double r3 = rng.rand();
 		if (r3 < (1/tauT)*dT) {
 			state[m] = MS_GROUND;
-//			printf ("v");fflush(stdout);
 		}
 	}
   }
@@ -164,9 +155,7 @@ void Fluorescence:: ApplyStateChanges () {
 	 frame_counter -= PROGRESS_IND_FREQ; LOG ("Frame %d: %d photons in channel 1.",current_frame,current_photons1);
 	 printf ("\n%2.2f%%",(double)current_frame/total_frames*100.0);
 	#ifdef CALC_MSD
-	 //LOG ("Frame#%d: <x^2> = %lf", current_frame, MeanSquareDisplacement());
-	 //fprintf (fmsd, "%le %le\n", current_frame*dT/1e12, MeanSquareDisplacement()/1e18);
-	fprintf (fmsd, "%d %le\n", current_frame, MeanSquareDisplacement()/1e18);
+	 fprintf (fmsd, "%d %le\n", current_frame, MeanSquareDisplacement()/1e18);
 	 fflush (fmsd);
 	#endif //CALC_MSD
 	} 
@@ -190,21 +179,22 @@ void Fluorescence:: TryExcitation (int m) {						//m - molecule index
  
  //PROFIL GAUSSA
  if (profil == PR_GAUSS) {
-  double prob_ex = EPSILON *dT*exp(-2*((mol[m].x[0]-F1[0])*(mol[m].x[0]-F1[0])			//probability of excitation (Gaussian profile) [Winkler] - chyba poprawny]
+  double prob_ex = EPSILON *dT*exp(-2*((mol[m].x[0]-F1[0])*(mol[m].x[0]-F1[0])			//probability of excitation (Gaussian profile) [Winkler] - chyba poprawny
 					+(mol[m].x[1]-F1[1])*(mol[m].x[1]-F1[1])
 					+(mol[m].x[2]-F1[2])*(mol[m].x[2]-F1[2])/SQR_KAPPA ) / (WXY*WXY));
   double r1 = rng.rand();
   if (r1 < prob_ex) state[m] = MS_EXC_1;
   
   if (num_foci==2) {	//dual-focus setup
-    prob_ex = EPSILON *dT*exp(-2*((mol[m].x[0]-F2[0])*(mol[m].x[0]-F2[0])			//probability of excitation (Gaussian profile) [Winkler] - chyba poprawny]
+    prob_ex = EPSILON *dT*exp(-2*((mol[m].x[0]-F2[0])*(mol[m].x[0]-F2[0])			//[Winkler]
 					+(mol[m].x[1]-F2[1])*(mol[m].x[1]-F2[1])
 					+(mol[m].x[2]-F2[2])*(mol[m].x[2]-F2[2])/SQR_KAPPA ) / (WXY*WXY));
     r1 = rng.rand();
     if (r1 < prob_ex && (state[m] == MS_GROUND || (state[m] == MS_EXC_1 && rng.rand() > 0.5))) state[m] = MS_EXC_2; //jesli oba wzbudzily, to szansa na zliczenie w 1 lub 2 idzie pol na pol.
   } 
  }
- //PROFIL PROSTOKATNY (czyli "ostro obcięta" elipsoida)
+
+ //PROFIL PROSTOKATNY (czyli "ostro obcięta" elipsoida - tylko do porownania)
  else if (profil == PR_SQUARE) {
    if ( (mol[m].x[0]-F1[0])*(mol[m].x[0]-F1[0]) + (mol[m].x[1]-F1[1])*(mol[m].x[1]-F1[1]) + (mol[m].x[2]-F1[2])*(mol[m].x[2]-F1[2])/SQR_KAPPA < WXY*WXY) state[m] = MS_EXC_1;
    
@@ -227,7 +217,7 @@ void Fluorescence:: PhotoConversion (int m) {
 
   double r2 = rng.rand();
 
-  if (r2 < Qf) {			//Fluorescence
+  if (r2 < Qf) {	//Fluorescence
 	if (pinhole) {	//only count the photons from inside confocal volume
 		if (num_foci == 2) LOG ("*pinhole for 2 foci not implemented!");
 		if ((mol[m].x[0]-F1[0])*(mol[m].x[0]-F1[0])/WXY/WXY + 
@@ -241,12 +231,10 @@ void Fluorescence:: PhotoConversion (int m) {
 
 	state[m] = MS_GROUND;
 	ile_wyswiecilam[m]++;
-// 	printf ("*");
 // 	fprintf (fpos, "%lf %lf %lf\n",mol[m].x[0],mol[m].x[1],mol[m].x[2]); //Changed: wypisz do pliku positions.txt miejsca, w ktorych nastapila fluorescencja
   }
   else if (r2 < TRIPLET_TRESHOLD) {	//Intersystem Crossing, TRIPLET_TRESHOLD = Qf + Qt
 	state[m] = MS_TRI;
-//	printf (">");fflush(stdout);
   }
   else if (r2 < BLEACH_TRESHOLD) {	//Photobleaching, BLEACH_TRESHOLD = Qf + Qt + Qb
 	state[m] = MS_PHB;
@@ -257,9 +245,6 @@ void Fluorescence:: PhotoConversion (int m) {
 	ile_wybielonych ++;
 
 	fprintf(fp4,"%d\n",ile_wyswiecilam[m]);
-
-//	LOG ("*Wybielonych: %d",ile_wybielonych);
-//	printf ("0");fflush(stdout);
   }
   else {				//Relax
 	state[m] = MS_GROUND;
@@ -271,7 +256,7 @@ void Fluorescence:: PhotoConversion (int m) {
  ************************************************************************/
 void Fluorescence:: UpdateMoleculePositions () {
 
-	SimulateDiffusion ();	//NOTE reading trajectory - DISABLED
+	SimulateDiffusion ();	//NOTE reading trajectory is DISABLED
 //	if (simulate_diffusion) SimulateDiffusion ();		//if we aren't using a diffusion trajectory file, simulate movement
 //	else read_next_xtc(fin, natoms, &step, &czas, box, x, &prec,&bOK);
 
@@ -284,7 +269,6 @@ void Fluorescence:: UpdateMoleculePositions () {
 		     (abs(mol[i].old_x[2] - mol[i].x[2]) >= SIZE[2]/2) ) {
 			ile_wybielonych --;
 			ile_wyswiecilam[i] = 0;
-//			LOG ("*Odbielona! %d",i); ///
 			state[i]=MS_GROUND;
 		}
 
@@ -304,7 +288,7 @@ void Fluorescence:: UpdateMoleculePositions () {
 // 		return; //DIRTY HACK! just an option for the derived classes to skip this constructor ;)
 // 	}
 // 
-//         simulate_diffusion = false; pinhole=0;
+//      simulate_diffusion = false; pinhole=0;
 // 
 // 	fin = open_xtc(traj_file,"r");
 // 	read_first_(fin, &natoms, &step, &czas, box, &x,&prec, &bOK);
