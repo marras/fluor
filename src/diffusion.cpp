@@ -4,7 +4,6 @@
 #include <fstream>
 #include <typeinfo>
 
-// double CENTER [3] = {-1.0, -1.0, -1.0};	//the middle of the simulation box  // V = 4*4*10 = 160 um^3  
 double SIZE[3] = {-1.0, -1.0, -1.0};		//the size of the simulation box  // V = 4*4*10 = 160 um^3  
 double WXY = -1.0, WZ = -1.0;			//size of the excitation volume (Radius!)
 double SQR_KAPPA = -1.0; //(WZ/WXY)*(WZ/WXY);	//SQR_KAPPA = KAPPA^2 = (wxy / wz)^2 - shape factor of the excitation volume (kappa = 3).
@@ -17,50 +16,39 @@ using namespace std;
  ******************************************/
 
 void Fluorescence :: SimulateDiffusion () {
+	#ifdef ENABLE_GPU
+	MoveMolecules_GPU (); return;
+	#endif
 
-#ifdef ENABLE_GPU
-MoveMolecules_GPU (); return;
-#endif
+	#define _NO_COL -1
 
-#define _NO_COL -1
+	if (ile_babli == 0) {
+		//Normalne zachowane (box szescienny)
+		for (int t=0; t<steps_per_frame; t++) {	    //steps_per_frame = dT / dt (ile x gestsza rozdzielczosc sym. dyfuzji od sym. fluorescencji)
+			for (int i=0; i<natoms; i++) {
+			  const double DIFFUSION_STEP = mol[i].DIFFUSION_STEP();
+			  
+			  for (int d=0; d<3; d++) {
+				mol[i].x[d] += DIFFUSION_STEP * rng.randNorm(0.0,1.0); //rozklad normalny - taki jaki powinien byc...
+				mol[i].CheckSimulationBoxLimits(d); //Periodic boundary conditions
+	 		 }
+			}
 
-if (ile_babli == 0) {
-	//Normalne zachowane (box szescienny)
-	for (int t=0; t<steps_per_frame; t++) {	    //steps_per_frame = dT / dt (ile x gestsza rozdzielczosc sym. dyfuzji od sym. fluorescencji)
-		for (int i=0; i<natoms; i++) {
-		  const double DIFFUSION_STEP = mol[i].DIFFUSION_STEP();
-		  //if (DIFFUSION_STEP == 0) LOG ("!DIFFUSION_STEP==0 dla czastki %d!",i); //DEBUG
-		  
-		  for (int d=0; d<3; d++) {
-// 			mol[i].x[d] += DIFFUSION_STEP * (2.0*rng.rand() - 1.0); //uniform od -1 do +1 TEST HACK
-			mol[i].x[d] += DIFFUSION_STEP * rng.randNorm(0.0,1.0); //rozklad normalny - taki jaki powinien byc...
-			mol[i].CheckSimulationBoxLimits(d); //Periodic boundary conditions
- 		 }
 		}
+	} else if (ile_babli == 1) {
+		/************************************
+		* CONSTRICTION WITHIN AN ELLIPSOID *
+		************************************/
+		for (int t=0; t<steps_per_frame; t++) {	    //steps_per_frame = dT / dt (ile x gestsza rozdzielczosc sym. dyfuzji od sym. fluorescencji)
+			for (int i=0; i<natoms; i++) {
+				double new_x[3];
+				for (int d=0; d<3; d++) new_x[d] = mol[i].x[d] + mol[i].DIFFUSION_STEP() * rng.randNorm(0.0,1.0);
 
-	}
-} else if (ile_babli == 1) {
-	/************************************
-	* CONSTRICTION WITHIN AN ELLIPSOID *
-	************************************/
-	for (int t=0; t<steps_per_frame; t++) {	    //steps_per_frame = dT / dt (ile x gestsza rozdzielczosc sym. dyfuzji od sym. fluorescencji)
-		for (int i=0; i<natoms; i++) {
-			double new_x[3];
-			for (int d=0; d<3; d++) new_x[d] = mol[i].x[d] + mol[i].DIFFUSION_STEP() * rng.randNorm(0.0,1.0);
-
-			if (babel->IsInside(new_x)) for (int d=0; d<3; d++) mol[i].x[d] = new_x[d];
-			// w przeciwnym razie (gdyby czasteczka miala wyjsc poza babel) nie wykonujemy kroku
+				if (babel->IsInside(new_x)) for (int d=0; d<3; d++) mol[i].x[d] = new_x[d];
+				// w przeciwnym razie (gdyby czasteczka miala wyjsc poza babel) nie wykonujemy kroku
+			}
 		}
-	}
-} else LOG ("!Wrong number of ile_babli.");
-
-//	for (int m=0; m<natoms; m++) { //save positions of molecules TODO change to binary for later use
-//		fprintf (fpos,"%d\t%f\t%f\t%f\n",m,mol[m].x[0], mol[m].x[1], mol[m].x[2]);
-//	}
-
-//monitor x dimension of 1st molecule
-//  	LOG ("*Ruszylem sie o: %lf",mol[0].x[0] - mol[0].coll_test_x[0]);
-// LOG ("*Mol[1]_x: %lf",mol[0].x[0]); //pozycja 1-szej czasteczki
+	} else LOG ("!Wrong number of ile_babli.");
 }
 
 
@@ -217,7 +205,6 @@ void Fluorescence :: ReadBasicGROMACSParameters (char * param_file) {
 	}	
 
 	delete [] diff_coeff;
-	//delete [] num_atoms_in_type;  //to sie jeszcze przyda (dla diff_rods, jesli sa)
 }
 
 /* -------------------- Wczytywanie parametrow z pliku -------------------*/
